@@ -1,5 +1,14 @@
 (in-package #:sql-orm/tests)
 
+(defun %alter-actions (stmt)
+  (slot-value stmt 'sql-query::actions))
+
+(defun %create-table-name (stmt)
+  (slot-value stmt 'sql-query::table))
+
+(defun %create-columns (stmt)
+  (slot-value stmt 'sql-query::columns))
+
 (deftest schema-diff-add-column
   (clrhash sql-orm::*model-registry*)
   (defmodel item-v1 ()
@@ -14,11 +23,16 @@
       (sku :text)
       (:table items))
     (let* ((to (schema-snapshot '(item-v2)))
-           (ops (diff-schema from to)))
+           (ops (diff-schema from to))
+           (op (first ops))
+           (action (first (%alter-actions op)))
+           (col (slot-value action 'sql-query::column)))
       (ok (= 1 (length ops)))
-      (let ((sql (compile-sql (first ops) :dialect (make-sqlite3-dialect))))
-        (ok (search "ALTER" sql :test #'char-equal))
-        (ok (search "sku" sql :test #'char-equal))))))
+      (ok (typep op 'sql-query:alter-table-statement))
+      (ok (string-equal "items" (slot-value op 'sql-query::table)))
+      (ok (typep action 'sql-query::add-column-clause))
+      (ok (string-equal "sku" (sql-query:column-def-name col)))
+      (ok (eq :text (sql-query:column-def-type col))))))
 
 (deftest schema-diff-create-table
   (clrhash sql-orm::*model-registry*)
@@ -32,11 +46,13 @@
       (title :text)
       (:table posts))
     (let* ((to (schema-snapshot '(only-user only-post)))
-           (ops (diff-schema from to)))
+           (ops (diff-schema from to))
+           (op (first ops))
+           (cols (%create-columns op)))
       (ok (= 1 (length ops)))
-      (let ((sql (compile-sql (first ops) :dialect (make-sqlite3-dialect))))
-        (ok (search "CREATE" sql :test #'char-equal))
-        (ok (search "posts" sql :test #'char-equal))))))
+      (ok (typep op 'sql-query:create-table-statement))
+      (ok (string-equal "posts" (%create-table-name op)))
+      (ok (find "title" cols :key #'sql-query:column-def-name :test #'string-equal)))))
 
 (deftest ensure-schema-roundtrip
   (clrhash sql-orm::*model-registry*)

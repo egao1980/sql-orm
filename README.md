@@ -27,8 +27,8 @@ Not a Mito wrapper. Feature *ideas* overlap common ORMs; the API is plain Lisp (
     (find-instance 'user (id u))
     (select-instances 'user :where (:= :name "ada"))))
 
-;; schema as data
-(diff-schema (schema-snapshot '(user)) new-snapshot)  ; → DDL stmts
+;; schema as data — structural diff → sql-query AST (not SQL text)
+(diff-schema (schema-snapshot '(user)) new-snapshot)  ; → DDL statement objects
 ```
 
 | Surface | Notes |
@@ -36,7 +36,7 @@ Not a Mito wrapper. Feature *ideas* overlap common ORMs; the API is plain Lisp (
 | `defmodel` | columns + `:table` / `:has-many` / `:belongs-to` / `:compute` |
 | `persist` / `destroy` / `refresh` | generics |
 | `find-instance` / `select-instances` | filters are **sql-query** exprs |
-| `schema-snapshot` / `diff-schema` / `ensure-schema` | model diffs → DDL |
+| `schema-snapshot` / `diff-schema` / `ensure-schema` | model-level diff → DDL **AST** |
 
 ## Test / demo
 

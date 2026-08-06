@@ -1,7 +1,8 @@
 (in-package #:sql-orm)
 
-;;; Schema as data. Diff two snapshots → list of sql-query DDL statements.
-;;; No versioned migration runner in wave-1 — ops are inspectable Lisp values.
+;;; Schema as data. Diff compares model snapshots (column-info), never SQL text.
+;;; Result = list of sql-query DDL AST nodes (create-table / alter-table / …).
+;;; Compile/execute is a separate step. No versioned migration runner in wave-1.
 
 (defun %column→table-column (col)
   (apply #'table-column
@@ -36,11 +37,12 @@
   (find name columns :key #'column-info-name :test #'string-equal))
 
 (defun diff-schema (from to &key (drop-tables nil) (drop-columns t))
-  "Compare schema snapshots FROM → TO. Returns a list of sql-query DDL statements.
+  "Diff model snapshots FROM → TO at the structural level.
 
-FROM/TO are alists from SCHEMA-SNAPSHOT (or compatible).
-Wave-1 emits CREATE TABLE / DROP TABLE / ADD COLUMN / DROP COLUMN.
-Type alterations are not rewritten (returned as comments via orm-error only if needed)."
+FROM/TO are alists from SCHEMA-SNAPSHOT (table → column-info list).
+Returns sql-query DDL AST nodes (not SQL strings) — create-table-statement,
+alter-table-statement (add-column / drop-column), optional drop-table-statement.
+Callers compile/execute with sql-query as needed. Type alterations: wave-1 skip."
   (let ((ops '()))
     ;; create / alter tables present in TO
     (dolist (entry to)
