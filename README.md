@@ -27,8 +27,10 @@ Not a Mito wrapper. Feature *ideas* overlap common ORMs; the API is plain Lisp (
     (find-instance 'user (id u))
     (select-instances 'user :where (:= :name "ada"))))
 
-;; schema as data — structural diff → sql-query AST (not SQL text)
-(diff-schema (schema-snapshot '(user)) new-snapshot)  ; → DDL statement objects
+;; schema as data — structural diff → reversible ops → sql-query AST
+(let ((mig (make-migration old-snap new-snap :name "add-email" :revision "0002")))
+  (upgrade-schema c mig)
+  (downgrade-schema c mig))          ; rollback
 ```
 
 | Surface | Notes |
@@ -36,7 +38,12 @@ Not a Mito wrapper. Feature *ideas* overlap common ORMs; the API is plain Lisp (
 | `defmodel` | columns + `:table` / `:has-many` / `:belongs-to` / `:compute` |
 | `persist` / `destroy` / `refresh` | generics |
 | `find-instance` / `select-instances` | filters are **sql-query** exprs |
-| `schema-snapshot` / `diff-schema` / `ensure-schema` | model-level diff → DDL **AST** |
+| `schema-snapshot` / `diff-schema` | model-level → `schema-op` list |
+| `schema-op-upgrade` / `schema-op-downgrade` | op → sql-query DDL AST |
+| `upgrade-schema` / `downgrade-schema` | apply / roll back |
+| `make-migration` | thin handle (`revision` / `down-revision` reserved for a runner) |
+
+No versioned migration product here — just the reversible op algebra an Alembic-style package can version.
 
 ## Test / demo
 

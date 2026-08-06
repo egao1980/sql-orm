@@ -63,12 +63,39 @@
    #:count-instances
    #:make-from-row
 
-   ;; schema / migrations surface
+   ;; schema snapshots
    #:model-sql-table
    #:schema-snapshot
    #:diff-schema
    #:ensure-schema
+
+   ;; reversible schema ops (Alembic-style foundation)
+   #:schema-op
+   #:create-table-op
+   #:drop-table-op
+   #:add-column-op
+   #:drop-column-op
+   #:schema-op-table-name
+   #:schema-op-columns
+   #:schema-op-column
+   #:schema-op-upgrade
+   #:schema-op-downgrade
+   #:invert-schema-op
+   #:schema-ops-upgrade
+   #:schema-ops-downgrade
+   #:upgrade-schema
+   #:downgrade-schema
    #:apply-schema-ops
+
+   ;; migration handle
+   #:schema-migration
+   #:make-migration
+   #:schema-migration-name
+   #:schema-migration-ops
+   #:schema-migration-revision
+   #:schema-migration-down-revision
+   #:migration-upgrade-ops
+   #:migration-downgrade-ops
 
    ;; conditions
    #:orm-error
