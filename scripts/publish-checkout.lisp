@@ -20,6 +20,7 @@
   (or (uiop:getenv name) default))
 
 (let* ((system-name (env "PKG_SYSTEM" "sql-orm"))
+       ;; workflow_dispatch default "" is truthy — treat blank as missing
        (version (let ((v (env "PKG_VERSION")))
                   (if (and v (plusp (length v)))
                       v
@@ -38,6 +39,7 @@
         (list system-name))
   (setf (cl-repository-packager/build-matrix:package-spec-version spec) version)
   (setf result (cl-repository-packager/build-matrix:build-package spec))
-  (cl-repository-packager/oci-publish:publish-package result reg
-                                                      :namespace namespace)
-  (format t "~&; published ~A:~A~%" system-name version))
+  (format t "~&Publishing ~a/~a:~a~%" namespace system-name version)
+  (cl-repository-packager/publisher:publish-package
+   reg namespace version result spec :skip-catalog t)
+  (format t "~&Published ~a/~a:~a~%" namespace system-name version))
