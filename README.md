@@ -1,8 +1,8 @@
 # sql-orm
 
-**Status:** implementation on [`cursor/lispy-clos-orm-3a7a`](https://github.com/egao1980/sql-orm/pull/1) (not yet merged to `main`).
-
 Lispy **CLOS** ORM for [cl-stack](https://github.com/egao1980/cl-stack) — models, relationships, calculated fields, schema diff — on [`sql-query`](https://github.com/egao1980/sql-query) + [`sql-protocol`](https://github.com/egao1980/sql-protocol).
+
+OCI: `ghcr.io/egao1980/cl-systems/sql-orm:0.1.0` · nick **`stack-sql-orm`**
 
 Not a Mito wrapper. Feature *ideas* overlap common ORMs; the API is plain Lisp (`defclass`-shaped `defmodel`, generics, sql-query sexps for filters).
 
