@@ -16,9 +16,6 @@ env:
   CL_REPOSITORY_CLIENT_IMAGE: "ghcr.io/egao1980/cl-repository/cl-repository-client"
   CL_REPOSITORY_CLIENT_VERSION: "latest"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  # Sibling checkouts until sql-query (+ dialect) OCI matches registry API.
-  SQL_QUERY_REF: cursor/split-sql-query-backends-3a7a
-  SQL_QUERY_SQLITE3_REF: main
 
 jobs:
   test:
@@ -32,20 +29,6 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@v5
-
-      - name: Checkout sql-query (sibling)
-        uses: actions/checkout@v5
-        with:
-          repository: egao1980/sql-query
-          ref: ${{ env.SQL_QUERY_REF }}
-          path: _deps/sql-query
-
-      - name: Checkout sql-query-sqlite3 (sibling)
-        uses: actions/checkout@v5
-        with:
-          repository: egao1980/sql-query-sqlite3
-          ref: ${{ env.SQL_QUERY_SQLITE3_REF }}
-          path: _deps/sql-query-sqlite3
 
       - uses: oras-project/setup-oras@v2
         with:
@@ -119,11 +102,11 @@ jobs:
       - name: cl-repo install deps
         shell: bash
         run: |
-          export CL_SOURCE_REGISTRY="$(pwd)//:$(pwd)/_deps/sql-query//:$(pwd)/_deps/sql-query-sqlite3//:$(pwd)/${CL_REPOSITORY_CLIENT_DIR}//:"
+          export CL_SOURCE_REGISTRY="$(pwd)//:$(pwd)/${CL_REPOSITORY_CLIENT_DIR}//:"
           ros -l scripts/ci-install.lisp -q
 
       - name: Test
         shell: bash
         run: |
-          export CL_SOURCE_REGISTRY="$(pwd)//:$(pwd)/_deps/sql-query//:$(pwd)/_deps/sql-query-sqlite3//:$(pwd)/${CL_REPOSITORY_CLIENT_DIR}//:"
+          export CL_SOURCE_REGISTRY="$(pwd)//:$(pwd)/${CL_REPOSITORY_CLIENT_DIR}//:"
           ros -l scripts/ci-test.lisp -q
