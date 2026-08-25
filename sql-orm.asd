@@ -4,6 +4,10 @@
   :author "egao1980"
   :license "MIT"
   :depends-on ("sql-protocol" "sql-query")
+  :properties
+  (:cl-repo
+   (:ci (:with ("sql-backend-sqlite3" "sql-query-sqlite3")
+         :load-before-test ("sql-backend-sqlite3" "sql-query-sqlite3"))))
   :serial t
   :pathname "src"
   :components ((:file "package")
