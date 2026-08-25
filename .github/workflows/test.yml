@@ -1,14 +1,11 @@
-name: Test
+name: test
 
 on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
-
-concurrency:
-  group: sql-orm-test-${{ github.ref }}
-  cancel-in-progress: true
 
 env:
   SBCL_VERSION: 2.6.7
@@ -27,14 +24,11 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@v5
-
       - uses: egao1980/cl-repository/.github/actions/setup-client@main
-
       - uses: egao1980/cl-repository/.github/actions/setup-roswell@main
         with:
           sbcl-version: ${{ env.SBCL_VERSION }}
           roswell-version: ${{ env.ROSWELL_VERSION }}
-
       - name: Install SQLite (Unix)
         if: runner.os != 'Windows'
         shell: bash
@@ -44,18 +38,13 @@ jobs:
           elif command -v brew >/dev/null 2>&1; then
             brew list sqlite >/dev/null 2>&1 || brew install sqlite
           fi
-
       - name: Install SQLite (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: choco install sqlite -y --no-progress
-
-      - name: cl-repo install deps
-        shell: bash
-        run: |
-          ros -l scripts/ci-install.lisp -q
-
-      - name: Test
-        shell: bash
-        run: |
-          ros -l scripts/ci-test.lisp -q
+      - uses: egao1980/cl-repository/.github/actions/ci@main
+        with:
+          phase: install
+      - uses: egao1980/cl-repository/.github/actions/ci@main
+        with:
+          phase: test
