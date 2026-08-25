@@ -50,6 +50,6 @@ No versioned migration product here — just the reversible op algebra an Alembi
 ## Test / demo
 
 ```bash
-ros -l scripts/ci-test.lisp   # after deps on ASDF registry
+(asdf:test-system "sql-orm")
 ros -l examples/demo.lisp -q
 ```
