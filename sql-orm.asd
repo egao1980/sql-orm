@@ -1,5 +1,5 @@
 (defsystem "sql-orm"
-  :version "0.2.0"
+  :version "0.3.0"
   :description "Lispy CLOS ORM for cl-stack — models, relations, calc fields, schema diff on sql-query"
   :author "egao1980"
   :license "MIT"
@@ -33,7 +33,8 @@
                (:file "schema-test")
                (:file "s1-fixtures")
                (:file "algebra-test")
-               (:file "reflect-test"))
+               (:file "reflect-test")
+               (:file "rebuild-test"))
   :perform (test-op (o c)
              (unless (symbol-call :rove :run c)
                (error "tests failed for ~A" (component-name c)))))

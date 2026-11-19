@@ -48,6 +48,13 @@ SQL-QUERY:*SQL-DIALECT*."
          (error 'orm-error
                 :message (format nil "SQL dialect ~S is not registered" dialect))))))
 
+(defun %dialect-instance-or-ansi (dialect)
+  "%DIALECT-INSTANCE, or the ANSI dialect for a keyword that is not registered."
+  (if (and (keywordp dialect)
+           (null (gethash dialect sql-query:*sql-dialect-registry*)))
+      (%ansi-dialect)
+      (%dialect-instance dialect)))
+
 ;;; ---------------------------------------------------------------------------
 ;;; Equality
 ;;; ---------------------------------------------------------------------------

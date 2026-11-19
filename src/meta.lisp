@@ -44,6 +44,22 @@ existing column, drop or alter of a missing column.")
                      (reflection-unsupported-dialect c)
                      (and (slot-boundp c 'message) (orm-error-message c))))))
 
+(define-condition sqlite-rebuild-unsupported (orm-error)
+  ((table :initarg :table :initform nil :reader sqlite-rebuild-unsupported-table)
+   (objects :initarg :objects :initform nil :reader sqlite-rebuild-unsupported-objects)
+   (op :initarg :op :initform nil :reader sqlite-rebuild-unsupported-op))
+  (:documentation "The SQLite table rebuild for OP (an ALTER-COLUMN-OP) would
+lose OBJECTS of TABLE: strings naming what the rebuild cannot keep (a COLLATE
+clause, a generated column, an ON CONFLICT clause, a DEFERRABLE foreign key,
+WITHOUT ROWID / STRICT, or a foreign key into TABLE while PRAGMA foreign_keys
+is ON, where DROP TABLE would run its ON DELETE actions). Signalled before the
+rebuild changes anything, with a CONTINUE restart: rebuild anyway, losing
+OBJECTS.")
+  (:report (lambda (c s)
+             (format s "sql-orm: rebuilding SQLite table ~A would lose: ~{~A~^; ~}"
+                     (sqlite-rebuild-unsupported-table c)
+                     (sqlite-rebuild-unsupported-objects c)))))
+
 ;;; ---------------------------------------------------------------------------
 ;;; Connection binding
 ;;; ---------------------------------------------------------------------------
