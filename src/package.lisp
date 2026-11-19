@@ -87,6 +87,22 @@
    #:downgrade-schema
    #:apply-schema-ops
 
+   ;; 0.2.0 algebra (S1)
+   #:alter-column-op
+   #:schema-op-column-name
+   #:schema-op-from-column
+   #:schema-op-to-column
+   #:apply-ops-to-snapshot
+   #:schema-snapshot-equal
+   #:column-info-equal
+   #:canonical-type-sql
+   #:schema-dialect-key
+   #:schema-op-footprint
+   #:reflect-schema
+   #:reflect-schema-using
+   #:reflection-query
+   #:dialect-schema-op-statements
+
    ;; migration handle
    #:schema-migration
    #:make-migration
@@ -101,6 +117,12 @@
    #:orm-error
    #:orm-error-message
    #:unknown-model
-   #:missing-primary-key))
+   #:missing-primary-key
+   #:invalid-schema-op
+   #:invalid-schema-op-op
+   #:snapshot-conflict
+   #:snapshot-conflict-op
+   #:reflection-unsupported
+   #:reflection-unsupported-dialect))
 
 (in-package #:sql-orm)

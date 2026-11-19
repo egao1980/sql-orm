@@ -16,6 +16,34 @@
 
 (define-condition missing-primary-key (orm-error) ())
 
+;;; 0.2.0 schema algebra conditions
+
+(define-condition invalid-schema-op (orm-error)
+  ((op :initarg :op :initform nil :reader invalid-schema-op-op))
+  (:documentation "A SCHEMA-OP was built with inconsistent slots (e.g. an
+ALTER-COLUMN-OP whose FROM and TO differ in name, primary key, unique or
+autoincrement).")
+  (:report (lambda (c s)
+             (format s "sql-orm: invalid schema op ~S: ~A"
+                     (invalid-schema-op-op c) (orm-error-message c)))))
+
+(define-condition snapshot-conflict (orm-error)
+  ((op :initarg :op :initform nil :reader snapshot-conflict-op))
+  (:documentation "APPLY-OPS-TO-SNAPSHOT met an op that does not fit the
+snapshot: create of an existing table, drop of a missing table, add of an
+existing column, drop or alter of a missing column.")
+  (:report (lambda (c s)
+             (format s "sql-orm: op ~S conflicts with snapshot: ~A"
+                     (snapshot-conflict-op c) (orm-error-message c)))))
+
+(define-condition reflection-unsupported (orm-error)
+  ((dialect :initarg :dialect :initform nil :reader reflection-unsupported-dialect))
+  (:documentation "REFLECT-SCHEMA has no method for the connection's dialect.")
+  (:report (lambda (c s)
+             (format s "sql-orm: schema reflection unsupported for dialect ~S~@[: ~A~]"
+                     (reflection-unsupported-dialect c)
+                     (and (slot-boundp c 'message) (orm-error-message c))))))
+
 ;;; ---------------------------------------------------------------------------
 ;;; Connection binding
 ;;; ---------------------------------------------------------------------------
