@@ -123,6 +123,10 @@
    #:snapshot-conflict
    #:snapshot-conflict-op
    #:reflection-unsupported
-   #:reflection-unsupported-dialect))
+   #:reflection-unsupported-dialect
+   #:sqlite-rebuild-unsupported
+   #:sqlite-rebuild-unsupported-table
+   #:sqlite-rebuild-unsupported-objects
+   #:sqlite-rebuild-unsupported-op))
 
 (in-package #:sql-orm)

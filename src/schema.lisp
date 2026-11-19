@@ -178,13 +178,19 @@ pair (see DIFF-SCHEMA :COMPLETE)."))
                  :table-name (schema-op-table-name op)
                  :column (copy-column-info (schema-op-column op))))
 
-(defun %alter-column-statements (table from to)
+(defun %alter-column-statements (table from to &optional dialect)
   "Portable DDL turning column FROM into TO on TABLE: one ALTER-TABLE-STATEMENT
-per changed attribute, in the order type, nullability, default. The type is
-compared structurally and kept as a spec, so each dialect renders its own name."
-  (let ((column (%keywordize (column-info-name to)))
-        (out '()))
-    (unless (equal (column-info-type from) (column-info-type to))
+per changed attribute, in the order type, nullability, default. Types and
+defaults are compared by the SQL DIALECT renders for them (a dialect
+designator, NIL = ANSI; types through CANONICAL-TYPE-SQL), so :INTEGER and
+\"integer\" are one type. The new type is kept as a spec, so each dialect
+renders its own name."
+  (let* ((column (%keywordize (column-info-name to)))
+         (key (schema-dialect-key dialect))
+         (d (%dialect-instance-or-ansi dialect))
+         (out '()))
+    (unless (string= (%type-sql (column-info-type from) d key)
+                     (%type-sql (column-info-type to) d key))
       (push (alter-table table (sql-query:set-data-type column (column-info-type to))) out))
     (unless (%flag= (%effective-not-null from) (%effective-not-null to))
       (push (alter-table table (if (%effective-not-null to)
@@ -193,7 +199,7 @@ compared structurally and kept as a spec, so each dialect renders its own name."
             out))
     (let ((df (column-info-default from))
           (dt (column-info-default to)))
-      (unless (equal (%default-sql df nil) (%default-sql dt nil))
+      (unless (equal (%default-sql df d) (%default-sql dt d))
         (push (alter-table table (if dt
                                      (sql-query:set-default (%node-or-lit dt) :column column)
                                      (sql-query:drop-default :column column)))
