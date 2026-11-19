@@ -43,6 +43,12 @@ Not a Mito wrapper. Feature *ideas* overlap common ORMs; the API is plain Lisp (
 | `schema-snapshot` / `diff-schema` | model-level → `schema-op` list |
 | `schema-op-upgrade` / `schema-op-downgrade` | op → sql-query DDL AST |
 | `upgrade-schema` / `downgrade-schema` | apply / roll back |
+| `diff-schema :complete t [:dialect d]` | faithful diff (drops + `alter-column-op`s, locked order); default `:complete nil` is the 0.1 policy |
+| `alter-column-op` | type / nullability / default change in place; portable `ALTER COLUMN` DDL, table rebuild on SQLite |
+| `apply-ops-to-snapshot` | pure fold of ops (list, op or migration) over a snapshot; signals `snapshot-conflict` |
+| `schema-snapshot-equal` / `column-info-equal` | order-insensitive, dialect-aware equality |
+| `schema-op-footprint` | `"table:<t>"` / `"column:<t>.<c>"` resources an op touches |
+| `reflect-schema` | live snapshot from the catalog (SQLite, PostgreSQL); `:exclude`, `:dialect`, `:schema` |
 | `make-migration` | thin handle (`revision` / `down-revision` reserved for a runner) |
 
 No versioned migration product here — just the reversible op algebra an Alembic-style package can version.
