@@ -32,6 +32,33 @@
    (column :initarg :column :reader schema-op-column
            :documentation "Full COLUMN-INFO so downgrade can re-add.")))
 
+;;; S1 contract stub (remove when implemented): every 0.2.0 entry point
+;;; below that is not implemented yet calls this.
+(defun %s1-pending (what)
+  (error 'orm-error
+         :message (format nil "~A is not implemented yet (sql-orm 0.2.0 S1)" what)))
+
+(defclass alter-column-op (schema-op)
+  ((table-name :initarg :table-name :reader schema-op-table-name)
+   (from :initarg :from :reader schema-op-from-column
+         :documentation "Complete COLUMN-INFO before the change.")
+   (to :initarg :to :reader schema-op-to-column
+       :documentation "Complete COLUMN-INFO after the change."))
+  (:documentation
+   "Change one column's type, nullability and/or default in place.
+FROM and TO are complete COLUMN-INFOs with the same name, primary key, unique
+and autoincrement flags; INITIALIZE-INSTANCE signals INVALID-SCHEMA-OP
+otherwise. Columns whose key flags change are a DROP-COLUMN-OP + ADD-COLUMN-OP
+pair (see DIFF-SCHEMA :COMPLETE)."))
+
+(defmethod initialize-instance :after ((op alter-column-op) &key)
+  (%s1-pending "alter-column-op validation"))
+
+(defgeneric schema-op-column-name (op)
+  (:documentation "Name of the column OP touches (ALTER-COLUMN-OP: the shared name of FROM and TO).")
+  (:method ((op alter-column-op))
+    (column-info-name (schema-op-from-column op))))
+
 (defun %column→table-column (col)
   (apply #'table-column
          (%keywordize (column-info-name col))
@@ -115,6 +142,15 @@
                  :table-name (schema-op-table-name op)
                  :column (copy-column-info (schema-op-column op))))
 
+(defmethod schema-op-upgrade ((op alter-column-op))
+  (%s1-pending "schema-op-upgrade (alter-column-op)"))
+
+(defmethod schema-op-downgrade ((op alter-column-op))
+  (%s1-pending "schema-op-downgrade (alter-column-op)"))
+
+(defmethod invert-schema-op ((op alter-column-op))
+  (%s1-pending "invert-schema-op (alter-column-op)"))
+
 (defun schema-ops-upgrade (ops)
   "Flatten UPGRADE AST for a list of SCHEMA-OPs (forward order)."
   (mapcan (lambda (op) (copy-list (schema-op-upgrade op))) ops))
@@ -181,13 +217,24 @@
 (defun %col-by-name (columns name)
   (find name columns :key #'column-info-name :test #'string-equal))
 
-(defun diff-schema (from to &key (drop-tables nil) (drop-columns t))
+(defun diff-schema (from to &key (drop-tables nil) (drop-columns t)
+                               (complete nil) (dialect nil))
   "Diff model snapshots FROM → TO.
 
 Returns a list of SCHEMA-OP (create-table-op / add-column-op / …), not SQL text
 and not bare DDL statements. Use SCHEMA-OP-UPGRADE / SCHEMA-OPS-UPGRADE for AST,
 UPGRADE-SCHEMA to execute, SCHEMA-OP-DOWNGRADE / DOWNGRADE-SCHEMA to roll back.
-Type alterations: wave-1 skip."
+
+Default (COMPLETE nil): the 0.1 autogenerate policy, unchanged — creates, adds,
+drops per DROP-TABLES / DROP-COLUMNS, no alterations.
+
+COMPLETE t: the faithful diff — every drop and alter, so
+(SCHEMA-SNAPSHOT-EQUAL (APPLY-OPS-TO-SNAPSHOT FROM ops) TO :DIALECT DIALECT).
+DROP-TABLES and DROP-COLUMNS are ignored. DIALECT (nil = ANSI, a registered
+keyword, or a SQL-DIALECT) is the equality used to detect changed columns."
+  (when complete
+    (return-from diff-schema
+      (progn dialect (%s1-pending "diff-schema :complete t"))))
   (let ((ops '()))
     (dolist (entry to)
       (destructuring-bind (table . cols) entry
